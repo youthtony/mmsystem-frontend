@@ -114,6 +114,7 @@ export default {
               this.data = res.data.data;
               this.$message.success("登录成功");
             //   将数据传递给父组件
+              console.log('现在的登录用户：',res.data.data);
               this.$emit('userData',res.data.data);
             //   放入cookie
               this.$cookies.set('userData', res.data.data);

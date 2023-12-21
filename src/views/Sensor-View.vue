@@ -1,7 +1,7 @@
 <template>
   <div id="Sensor-View">
     <div class="container">
-      <TableComponent :TableData="tableData"/>
+      <TableComponent :TableData="tableData" @updateTableData="updateData"/>
     </div>
   </div>
 </template>
@@ -10,20 +10,7 @@
 import TableComponent from "@/components/Table-Component.vue";
    export default{
      created() {
-       this.$axios.get('/sensor/getAllSensor')
-           .then(res => {
-             if (res.data.code==0){
-               // 请求成功，处理返回的数据
-               this.tableData = res.data.data;
-               console.log(this.tableData);
-             }else {
-               this.$message.error(res.data.message);
-             }
-           })
-           .catch(error => {
-             // 请求失败，处理错误
-             console.error('Error fetching data:', error);
-           });
+       this.updateSensor()
      },
      name: 'Sensor-View',
      data(){
@@ -33,6 +20,28 @@ import TableComponent from "@/components/Table-Component.vue";
      },
     components:{
       TableComponent
+    },
+    methods:{
+      updateData(updateTableData){
+        console.log("最新数据：",updateTableData);
+        this.tableData = updateTableData;
+      },
+       updateSensor(){
+         this.$axios.get('/sensor/getAllSensor')
+             .then(res => {
+               if (res.data.code==0){
+                 // 请求成功，处理返回的数据
+                 this.tableData = res.data.data;
+                 console.log(this.tableData);
+               }else {
+                 this.$message.error(res.data.message);
+               }
+             })
+             .catch(error => {
+               // 请求失败，处理错误
+               console.error('Error fetching data:', error);
+             });
+       }
     }
    }
 </script>

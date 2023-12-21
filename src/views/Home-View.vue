@@ -1,7 +1,11 @@
 <template>
   <div id="Home-View">
-    <NavigationBarComponent v-if="isLogin"> </NavigationBarComponent>
-    <LoginAndRegisterComponents v-if="!isLogin" @userData="updateUserData"></LoginAndRegisterComponents>
+    <div  v-show="isLogin">
+      <NavigationBarComponent :loginUser="user"/>
+    </div>
+    <div v-if="isLogin===false">
+      <LoginAndRegisterComponents @userData="updateUserData"></LoginAndRegisterComponents>
+    </div>
     <router-view></router-view>
   </div>
 </template>
@@ -25,14 +29,11 @@ export default {
     }
   },
   name: "Home-View",
+
   data() {
     return {
       isLogin:false,
-      user:{
-        phoneId:'',
-        userName:'',
-        password:'',
-      }
+      user:{}
     }
   },
   components: {
@@ -41,9 +42,14 @@ export default {
   },
   methods: {
     updateUserData(userData){
+      console.log("更新登录用户数据：",userData);
       this.user=userData;
-      console.log(this.user);
       this.isLogin=true;
+      // 添加条件，只在登录成功时跳转路由
+      if (this.$route.path !== '/') {
+        this.$router.push('/');
+      }
+      console.log("现在的登录状态isLogin：",this.isLogin);
     }
   }
 }
