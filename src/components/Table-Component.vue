@@ -1,5 +1,21 @@
 <template>
   <div id="Table-Component">
+    <el-row class="display-6" :gutter="24">
+      <!-- 搜索部分 -->
+      <el-col :span="21">
+        <div class="grid-content bg-purple">
+          <el-input placeholder="请输入内容" v-model="searchData" class="input-with-select">
+            <el-button slot="append" icon="el-icon-search">模糊搜索</el-button>
+          </el-input>
+        </div>
+      </el-col>
+      <!-- 新增数据部分 -->
+      <el-col :span="3">
+        <div class="grid-content bg-purple">
+          <el-button :span="4" type="primary" @click="AddData(SensorOrCoalMineName)">新增数据</el-button>
+        </div>
+      </el-col>
+    </el-row>
     <el-table
         :data="TableData"
         stripe
@@ -7,25 +23,36 @@
         @cell-mouse-enter="handleRowClick($event)"
     >
       <el-table-column v-for="propertyName in propertyNames"
-          :key="propertyName"
-          :prop="propertyName"
-          :label="$t(propertyName)"
-          width="180">
+                       :key="propertyName"
+                       :prop="propertyName"
+                       :label="$t(propertyName)"
+                       width="180">
       </el-table-column>
       <el-table-column
-        label="操作"
-        width="180">
+          label="操作"
+          width="180">
         <el-button type="primary" @click="updateData()">修改</el-button>
         <el-button type="danger" @click="deleteData">删除</el-button>
       </el-table-column>
     </el-table>
-    <UpdateComponent :IsDialogShow="dialogFormVisible" :propertyNames="propertyNames" :updateDataObject="upDataObject" @newTableData="updateToNewTableData" @newDialog="updateDialogFormVisible"/>
+    <UpdateComponent :IsDialogShow="dialogFormVisible" :propertyNames="propertyNames" :updateDataObject="upDataObject"
+                     @newTableData="updateToNewTableData" @newDialog="updateDialogFormVisible"/>
+    <AddSensorComponent :IsDialogShow="AddSensorDialogFormVisible" @newAddDialog="updateAddSensorDialogFormVisible"
+                        @IsUpdate="affirmUpdate(SensorOrCoalMineName)"
+    />
+    <AddCoalMineComponent :IsDialogShow="AddCoalMineDialogFormVisible"
+                          @newAddDialog="updateAddCoalMineDialogFormVisible"
+                          @IsUpdate="affirmUpdate"
+    />
   </div>
 </template>
 
 <script>
 import UpdateComponent from "@/components/Update-Component.vue";
 import data from "bootstrap/js/src/dom/data";
+import AddSensorComponent from "@/components/AddSensor-Component.vue";
+import AddCoalMineComponent from "@/components/AddCoalMine-Component.vue";
+
 export default {
   beforeDestroy() {
     // 在组件销毁前检查 dialogFormVisible 的状态
@@ -39,8 +66,10 @@ export default {
       return data
     }
   },
-  components:{
-    UpdateComponent
+  components: {
+    UpdateComponent,
+    AddSensorComponent,
+    AddCoalMineComponent
   },
   //  组件的选项
   watch: {
@@ -70,7 +99,7 @@ export default {
       }
     }
     // 初始化属性名
-    this.initializePropertyNames(this.TableData);
+    this.initializePropertyNames(this.thisTableData);
 
   },
   props: ['TableData'],
@@ -78,9 +107,14 @@ export default {
     return {
       propertyNames: [],
       dialogFormVisible: false,
-      upDataId:'',
-      upDataObject:{},
-      deDataObject:{},//删除对象
+      upDataId: '',
+      upDataObject: {},//更新对象
+      deDataObject: {},//删除对象
+      thisTableData: [],//当前表格数据
+      searchData: '',
+      AddSensorDialogFormVisible: false,
+      AddCoalMineDialogFormVisible: false,
+      SensorOrCoalMineName: '',
     }
   },
   methods: {
@@ -93,30 +127,31 @@ export default {
           this.propertyNames = Object.keys(firstDataObject);
           let valuesToDelete = ["id", "createTime", "updateTime", "isDelete"];
           this.propertyNames = this.propertyNames.filter(item => !valuesToDelete.includes(item));
+          this.SensorOrCoalMineName = this.propertyNames[0];
         }
       }
     },
     // 更新弹窗属性
-    updateDialogFormVisible(newDialog){
-      this.dialogFormVisible=newDialog;
+    updateDialogFormVisible(newDialog) {
+      this.dialogFormVisible = newDialog;
     },
-    updateToNewTableData(newTableData){
+    updateToNewTableData(newTableData) {
       // 给父组件
       this.$emit('updateTableData', newTableData);
     },
-  //   点击修改按钮
+    //   点击修改按钮
     updateData() {
       // 检查TableData不为空
       if (this.TableData && this.TableData.length > 0) {
         console.log("表单数据", this.TableData);
-        console.log("ID",this.upDataId);
+        console.log("ID", this.upDataId);
         // 通过ID查找目标数据对象
         const targetData = this.TableData.find(item => item.id === this.upDataId);
 
         // 如果找到目标数据对象
         if (targetData) {
           // 将目标数据对象赋值给upDataObject
-          this.upDataObject = { ...targetData };
+          this.upDataObject = {...targetData};
           // 显示修改弹窗
           this.dialogFormVisible = true;
         } else {
@@ -128,24 +163,24 @@ export default {
         console.error('TableData为空');
       }
     },
-  //   点击删除按钮
-    deleteData(){
+    //   点击删除按钮
+    deleteData() {
       this.$confirm('是否确认删除该条数据?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
-        center:true
+        center: true
       }).then(() => {
-        console.log("点击了确定",this.propertyNames[0]);
-      //    发送请求删除数据
-        if (this.propertyNames[0]=='sensorName'){
-        //   如果是传感器
-        console.log("传感器");
-         this.submitDelete("/sensor/deleteSensor","sensor");
-        }else {
+        console.log("点击了确定", this.propertyNames[0]);
+        //    发送请求删除数据
+        if (this.propertyNames[0] == 'sensorName') {
+          //   如果是传感器
+          console.log("传感器");
+          this.submitDelete("/sensor/deleteSensor", "sensor");
+        } else {
           // 如果是煤矿
           console.log("煤矿");
-          this.submitDelete("/coalMine/deleteCoalMine","coalMine");
+          this.submitDelete("/coalMine/deleteCoalMine", "coalMine");
         }
       }).catch(() => {
         this.$message({
@@ -154,29 +189,28 @@ export default {
         });
       });
     },
-  //   获取这一行数据
-    handleRowClick(event){
+    //   获取这一行数据
+    handleRowClick(event) {
       // 将被点击的行的数据赋值给upData
       this.upDataId = event.id;
     },
     // 提交删除方法
-    submitDelete(link,Name){
-      console.log("删除链接",link);
+    submitDelete(link, Name) {
+      console.log("删除链接", link);
       // 通过ID查找目标数据对象
       const targetData = this.TableData.find(item => item.id === this.upDataId);
       // 如果找到目标数据对象
       if (targetData) {
         // 将目标数据对象赋值给upDataObject
-        this.deDataObject = { ...targetData };
+        this.deDataObject = {...targetData};
         // 删除目标数据对象
-        console.log("删除目标数据对象",this.deDataObject);
+        console.log("删除目标数据对象", this.deDataObject);
         this.$axios.post(link, this.deDataObject).then(res => {
-          console.log("进入",res.data);
           if (res.data.code == 0) {
             // 请求成功，处理返回的数据
-            if (Name=="sensor"){
+            if (Name == "sensor") {
               this.updateSensor();
-            }else {
+            } else {
               this.updateCoalMine();
             }
             this.$message.success("删除成功");
@@ -192,16 +226,18 @@ export default {
         console.error(`在TableData中未找到ID为${this.upDataId}的数据`);
       }
     },
-    // 更新传感器
-    updateSensor(){
+    // todo 更新传感器
+    updateSensor() {
       this.$axios.get('/sensor/getAllSensor')
           .then(res => {
-            if (res.data.code==0){
+            if (res.data.code == 0) {
               // 请求成功，处理返回的数据
-              // todo 返回给父组件
-              this.$emit('newTableData', res.data.data);
-              console.log(this.res.data.data);
-            }else {
+              // todo 更新数据
+              // this.$emit('newTableData', res.data.data);
+              // this.thisTableData=res.data.data;
+              this.initializePropertyNames(res.data.data);
+              console.log("newTableData", this.res.data.data);
+            } else {
               this.$message.error(res.data.message);
             }
           })
@@ -210,15 +246,17 @@ export default {
             console.error('Error fetching data:', error);
           });
     },
-    // 更新煤矿
-    updateCoalMine(){
+    // todo 更新煤矿
+    updateCoalMine() {
       this.$axios.get('/coalMine/getAllCoalMine')
           .then(res => {
-            if (res.data.code==0){
+            if (res.data.code == 0) {
               // todo 请求成功，处理返回的数据
-              console.log(res.data.data);
-              this.$emit('newTableData', res.data.data);
-            }else {
+              console.log("newTableData", this.res.data.data);
+              this.initializePropertyNames(res.data.data);
+              // this.thisTableData=res.data.data;
+              // this.$emit('newTableData', res.data.data);
+            } else {
               this.$message.error(res.data.message);
             }
           })
@@ -226,6 +264,33 @@ export default {
             // 请求失败，处理错误
             console.error('Error fetching data:', error);
           });
+    },
+    // 更新 添加 组件显示状态
+    updateAddSensorDialogFormVisible(newAddDialog) {
+      this.AddSensorDialogFormVisible = newAddDialog;
+    },
+    updateAddCoalMineDialogFormVisible(newAddDialog) {
+      this.AddCoalMineDialogFormVisible = newAddDialog;
+    },
+    //   点击添加按钮
+    AddData(data) {
+      console.log("Sensor Or CoalMine:", data);
+      // 显示修改弹窗
+      if (data == "sensorName") {
+        this.AddSensorDialogFormVisible = true;
+      } else {
+        this.AddCoalMineDialogFormVisible = true;
+      }
+    },
+    // 确认是否需要刷新数据
+    affirmUpdate(SensorOrCoalMineName){
+      console.log("需要更新数据,SensorOrCoalMineName：",SensorOrCoalMineName);
+      // 刷新数据
+      if (SensorOrCoalMineName=="sensorName"){
+        this.updateSensor();
+      }else {
+        this.updateCoalMine();
+      }
     }
   }
 }
@@ -233,5 +298,13 @@ export default {
 
 <style scoped>
 #Table-Component {
+}
+
+.el-select .el-input {
+  width: 130px;
+}
+
+.input-with-select {
+  background-color: #fff;
 }
 </style>
