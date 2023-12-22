@@ -38,11 +38,11 @@
     <UpdateComponent :IsDialogShow="dialogFormVisible" :propertyNames="propertyNames" :updateDataObject="upDataObject"
                      @newTableData="updateToNewTableData" @newDialog="updateDialogFormVisible"/>
     <AddSensorComponent :IsDialogShow="AddSensorDialogFormVisible" @newAddDialog="updateAddSensorDialogFormVisible"
-                        @IsUpdate="affirmUpdate(SensorOrCoalMineName)"
+                        @IsAddSensor="affirmAddSensor"
     />
     <AddCoalMineComponent :IsDialogShow="AddCoalMineDialogFormVisible"
                           @newAddDialog="updateAddCoalMineDialogFormVisible"
-                          @IsUpdate="affirmUpdate"
+                          @IsAddCoalMine="affirmAddCoalMine"
     />
   </div>
 </template>
@@ -194,6 +194,14 @@ export default {
       // 将被点击的行的数据赋值给upData
       this.upDataId = event.id;
     },
+    // 更新数据方法
+    submitUpdateData(data) {
+      console.log("传入的数据", data);
+      this.thisTableData=data;
+      console.log("更新后的数据", this.thisTableData);
+    //   传给父组件
+      this.$emit("updateTableData", this.thisTableData);
+    },
     // 提交删除方法
     submitDelete(link, Name) {
       console.log("删除链接", link);
@@ -232,11 +240,7 @@ export default {
           .then(res => {
             if (res.data.code == 0) {
               // 请求成功，处理返回的数据
-              // todo 更新数据
-              // this.$emit('newTableData', res.data.data);
-              // this.thisTableData=res.data.data;
-              this.initializePropertyNames(res.data.data);
-              console.log("newTableData", this.res.data.data);
+              this.submitUpdateData(res.data.data);
             } else {
               this.$message.error(res.data.message);
             }
@@ -251,11 +255,8 @@ export default {
       this.$axios.get('/coalMine/getAllCoalMine')
           .then(res => {
             if (res.data.code == 0) {
-              // todo 请求成功，处理返回的数据
-              console.log("newTableData", this.res.data.data);
-              this.initializePropertyNames(res.data.data);
-              // this.thisTableData=res.data.data;
-              // this.$emit('newTableData', res.data.data);
+              // 请求成功，处理返回的数据
+              this.submitUpdateData(res.data.data);
             } else {
               this.$message.error(res.data.message);
             }
@@ -282,14 +283,20 @@ export default {
         this.AddCoalMineDialogFormVisible = true;
       }
     },
-    // 确认是否需要刷新数据
-    affirmUpdate(SensorOrCoalMineName){
-      console.log("需要更新数据,SensorOrCoalMineName：",SensorOrCoalMineName);
-      // 刷新数据
-      if (SensorOrCoalMineName=="sensorName"){
+    // 经过添加，重新获取传感器数据
+    affirmAddSensor(IsAddSensor){
+      if (IsAddSensor){
+      //   获取数据
         this.updateSensor();
-      }else {
-        this.updateCoalMine();
+      }
+    //   否则不做处理
+    },
+    // 确认是否需要刷新数据
+    affirmAddCoalMine(IsAddCoalMine){
+      console.log("是否添加了煤矿",IsAddCoalMine);
+      // 刷新数据
+      if (IsAddCoalMine){
+        this.updateCoalMine()
       }
     }
   }

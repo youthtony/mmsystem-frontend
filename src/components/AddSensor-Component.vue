@@ -120,14 +120,16 @@ export default {
             if (res.data.code==0){
               // 请求成功，处理返回的数据
               // 返回给父组件
-              this.$emit('IsUpdate', true);
-              console.log(this.res.data.data);
+              this.$emit('IsAddSensor', true);
+              console.log("IsAddSensor",this.res.data.data);
             }else {
+              this.$emit('IsAddSensor', false);
               this.$message.error(res.data.message);
             }
           })
           .catch(error => {
             // 请求失败，处理错误
+            this.$emit('IsAddSensor', false);
             console.error('Error fetching data:', error);
           });
     },

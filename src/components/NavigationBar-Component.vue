@@ -12,7 +12,6 @@
             <el-button type="text" @click="dialog = true">欢迎你! {{ LoginIngUserForm.userName }}</el-button>
           </el-menu-item>
         </el-menu>
-
       </div>
     </header>
     <!--抽屉-->
@@ -55,9 +54,6 @@
 
 export default {
   props: ['loginUser'],
-  created() {
-    this.activeIndex='/sensor';
-  },
   data() {
     return {
       table: false,

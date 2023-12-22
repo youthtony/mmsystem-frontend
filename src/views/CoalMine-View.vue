@@ -23,6 +23,7 @@ export default{
   },
   methods:{
     updateData(updateTableData){
+      console.log("最新数据：",updateTableData);
       this.tableData = updateTableData;
     },
     updateCoalMine(){

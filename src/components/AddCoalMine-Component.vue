@@ -118,14 +118,16 @@ export default {
             if (res.data.code == 0) {
               // 请求成功，处理返回的数据
               // 返回给父组件
-              this.$emit('newTableData', res.data.data);
-              console.log(this.res.data.data);
+              this.$emit('IsAddCoalMine', true);
+              console.log("IsAddCoalMine",res.data.data);
             } else {
+              this.$emit('IsAddCoalMine', false);
               this.$message.error(res.data.message);
             }
           })
           .catch(error => {
             // 请求失败，处理错误
+            this.$emit('IsAddCoalMine', false);
             console.error('Error fetching data:', error);
           });
     },
