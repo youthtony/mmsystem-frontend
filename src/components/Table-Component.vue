@@ -4,8 +4,8 @@
       <!-- 搜索部分 -->
       <el-col :span="21">
         <div class="grid-content bg-purple">
-          <el-input placeholder="请输入内容" v-model="searchData" class="input-with-select">
-            <el-button slot="append" icon="el-icon-search">模糊搜索</el-button>
+          <el-input placeholder="请输入内容" v-model="searchData" class="input-with-select" @change="SearchClick(SensorOrCoalMineName)">
+            <el-button slot="append" icon="el-icon-search" @click="SearchClick(SensorOrCoalMineName)">模糊搜索</el-button>
           </el-input>
         </div>
       </el-col>
@@ -35,6 +35,7 @@
         <el-button type="danger" @click="deleteData">删除</el-button>
       </el-table-column>
     </el-table>
+    <!--添加、更新组件-->
     <UpdateComponent :IsDialogShow="dialogFormVisible" :propertyNames="propertyNames" :updateDataObject="upDataObject"
                      @newTableData="updateToNewTableData" @newDialog="updateDialogFormVisible"/>
     <AddSensorComponent :IsDialogShow="AddSensorDialogFormVisible" @newAddDialog="updateAddSensorDialogFormVisible"
@@ -298,6 +299,56 @@ export default {
       if (IsAddCoalMine){
         this.updateCoalMine()
       }
+    },
+    /**
+     *  搜索功能部分
+     */
+    SearchClick(data){
+      console.log("搜索数据：",this.searchData);
+      console.log('Sensor or CoalMine:',data);
+      if (data=='sensorName'){
+        this.SearchSensor();
+      }else if (data=='coalMineName'){
+        this.SearchCoalMine();
+      }
+    //   更新到Table
+    },
+    SearchSensor(){
+      // 提交到后台
+      this.$axios.post('/sensor/searchSensor?search='+this.searchData)
+          .then(res =>{
+            if (res.data.code==0){
+              console.log('搜索成功:',res.data.data);
+              // 更新到表单
+              this.submitUpdateData(res.data.data);
+              this.$message.success('搜索成功');
+            }else {
+              this.$message.error('搜索失败',res.data.message);
+            }
+          })
+          .catch(error => {
+            // 请求失败，处理错误
+            console.error('Error fetching data:', error);
+          });
+    },
+    // 搜索煤矿
+    SearchCoalMine(){
+      // 提交到后台
+      this.$axios.post('/coalMine/searchCoalMine?search='+this.searchData)
+          .then(res =>{
+            if (res.data.code==0){
+              console.log('搜索成功:',res.data.data);
+              // 更新到表单
+              this.submitUpdateData(res.data.data);
+              this.$message.success('搜索成功');
+            }else {
+              this.$message.error('搜索失败',res.data.message);
+            }
+          })
+          .catch(error => {
+            // 请求失败，处理错误
+            console.error('Error fetching data:', error);
+          });
     }
   }
 }
