@@ -30,6 +30,7 @@
 </template>
 
 <script>
+import CryptoJS from 'crypto-js';
 
 export default {
   data() {
@@ -73,11 +74,7 @@ export default {
     return {
       url: "src/assets/login.png",
       checkIsRegister: false,
-      userData: {
-        phoneId: '',
-        userName: '',
-        password: '',
-      },
+      userData: {},
       ruleForm: {
         phoneId: '',
         userName: '',
@@ -106,16 +103,18 @@ export default {
   methods: {
     // 登录事件
     submitForm() {
+      console.log("加密后MD5：",this.encryptStringWithMD5(this.ruleForm.password))
       // 使用this.$axios发起GET请求
-      this.$axios.post('/user/login',{phoneId:this.ruleForm.phoneId,password:this.ruleForm.password})
+      this.$axios.post('/user/login',{phoneId:this.ruleForm.phoneId,password:this.encryptStringWithMD5(this.ruleForm.password)})
           .then(res => {
             if (res.data.code==0){
               // 请求成功，处理返回的数据
-              this.data = res.data.data;
               this.$message.success("登录成功");
+              this.userData=res.data.data;
+              this.userData.password=this.ruleForm.password;
             //   将数据传递给父组件
-              console.log('现在的登录用户：',res.data.data);
-              this.$emit('userData',res.data.data);
+              console.log('现在的登录用户：',this.userData);
+              this.$emit('userData',this.userData);
             //   放入cookie
               this.$cookies.set('userData', res.data.data);
             }else {
@@ -139,13 +138,12 @@ export default {
         const dataToSend = {
           phoneId: this.ruleForm.phoneId,
           userName: this.ruleForm.userName,
-          password: this.ruleForm.password,
+          password: this.encryptStringWithMD5(this.ruleForm.password),
         };
         this.$axios.post('/user/register', dataToSend).then(res => {
           console.log(res.data);
           if (res.data.code == 0) {
             // 请求成功，处理返回的数据
-            this.userData = res.data.data;
             this.$message.success("注册成功");
             this.reBack();
           } else {
@@ -166,6 +164,16 @@ export default {
       } else {
         this.$data.checkIsRegister = true;
       }
+    },
+    /**
+     *  加密函数
+     * @param inputString 输入字符串
+     * @return {*} 输出加密好的字符串
+     */
+    encryptStringWithMD5(inputString) {
+      // 使用MD5加密
+      const encryptedString = CryptoJS.MD5(inputString).toString();
+      return encryptedString;
     }
   }
 }
