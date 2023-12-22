@@ -1,6 +1,6 @@
 <template>
   <div id="Home-View">
-    <NavigationBarComponent v-if="isLogin==true" :loginUser="user"/>
+    <NavigationBarComponent v-if="isLogin==true" :loginUser="user" @userData="updateUserData"/>
     <LoginAndRegisterComponents v-if="isLogin==false" @userData="updateUserData"></LoginAndRegisterComponents>
     <router-view v-if="isLogin==true"></router-view>
   </div>
@@ -38,8 +38,8 @@ export default {
   },
   methods: {
     updateUserData(userData){
-      console.log("更新登录用户数据：",userData);
-      if (userData){
+      // 从cookie获取数据
+      if (userData!=null){
         console.log("正常登录：",userData);
         this.user=userData;
         this.isLogin=true;
@@ -47,6 +47,7 @@ export default {
         // 跳转到/sensor
         this.$router.push('/sensor');
       }else{
+        console.log("已无数据，重新登录");
         this.isLogin=false;
       }
       console.log("现在的登录状态isLogin：",this.isLogin);

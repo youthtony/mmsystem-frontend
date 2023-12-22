@@ -40,7 +40,7 @@
           <div class="drawer__footer">
             <el-button class="w-auto" @click="cancelForm">取 消</el-button>
             <el-button class="w-auto" type="danger" @click="deleteUser"> 注 销 用 户</el-button>
-            <el-button class="w-auto" @click="resetForm">清 空</el-button>
+            <el-button class="w-auto" @click="logOut"> 退 出 登 录</el-button>
             <el-button class="w-auto" type="primary" @click="submitForm" :loading="loading">
               {{ loading ? '提交中 ...' : '修 改 数 据' }}
             </el-button>
@@ -63,7 +63,7 @@ export default {
       dialog: false,
       loading: false,
       LoginIngUserForm: {...this.loginUser},
-      userData:{},
+      userData: {},
       formLabelWidth: '80px',
       timer: null,
       activeIndex: '/sensor'
@@ -92,9 +92,26 @@ export default {
       this.LoginIngUserForm = {...this.loginUser};
       clearTimeout(this.timer);
     },
-    // 重置
-    resetForm() {
-      this.LoginIngUserForm = {};
+    // 退出登录
+    logOut() {
+      this.$confirm('确定要退出登录吗？')
+          .then(res => {
+            console.log(res);
+            //   清空cookie数据
+            this.$cookies.remove("userData");
+            //   清空登录用户数据
+            this.$emit('userData', null);
+            this.cancelForm();
+            //   1s后进行跳转
+            setTimeout(
+                () => {
+                  this.$router.push("/");
+                }
+                , 1000);
+          })
+          .catch(()=>{
+            this.cancelForm();
+          })
     },
     handleSelect(key, keyPath) {
       this.$router.push({path: keyPath[0]});
@@ -109,15 +126,15 @@ export default {
             console.log(res);
             this.loading = true;
             this.timer = setTimeout(() => {
-              const password=this.LoginIngUserForm.password;
-              this.LoginIngUserForm.password=this.encryptStringWithMD5(this.LoginIngUserForm.password);
+              const password = this.LoginIngUserForm.password;
+              this.LoginIngUserForm.password = this.encryptStringWithMD5(this.LoginIngUserForm.password);
               // 提交到数据库
               this.$axios.post('/user/update', this.LoginIngUserForm)
                   .then(res => {
                     if (res.data.code == 0) {
                       // 请求成功，处理返回的数据
-                      this.userData=res.data.data;
-                      this.userData.password=password;
+                      this.userData = res.data.data;
+                      this.userData.password = password;
                       //   放入cookie
                       this.$cookies.set('userData', this.userData);
                       //   将数据传递给父组件
@@ -140,35 +157,36 @@ export default {
               }, 400);
             }, 2000);
           })
-          .catch(() =>{
+          .catch(() => {
             // 请求失败，处理错误
             this.cancelForm();
           });
     },
     //   注销用户
     deleteUser() {
-      console.log("注销用户：", this.loginUser);
+      this.userData= this.loginUser;
+      this.userData.password=this.encryptStringWithMD5(this.loginUser.password);
       //   发送请求
-      this.$axios.post("/user/deleteUser", this.loginUser)
-        .then(res=>{
-          if (res.data.code==0){
-            console.log("删除用户：",res.data.data);
-            this.$message.success("删除成功");
-          //   清空cookie数据
-            this.$cookies.remove("userData");
-            //   清空登录用户数据
-            this.$emit('userData', {});
-            this.cancelForm();
-          //   3s后进行跳转
-            setTimeout(
-              ()=>{
-                this.$router.push("/");
-              }
-            ,3000);
-          }else{
-            this.$message.error(res.data.message);
-          }
-        })
+      this.$axios.post("/user/deleteUser", this.userData)
+          .then(res => {
+            if (res.data.code == 0) {
+              console.log("删除用户：", res.data.data);
+              this.$message.success("删除成功");
+              //   清空cookie数据
+              this.$cookies.remove("userData");
+              //   清空登录用户数据
+              this.$emit('userData', null);
+              this.cancelForm();
+              //   3s后进行跳转
+              setTimeout(
+                  () => {
+                    this.$router.push("/");
+                  }
+                  , 1000);
+            } else {
+              this.$message.error(res.data.message);
+            }
+          })
     },
     /**
      *  加密函数
