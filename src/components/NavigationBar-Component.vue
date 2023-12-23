@@ -8,6 +8,7 @@
           </el-menu-item>
           <el-menu-item index="/sensor">传感器管理</el-menu-item>
           <el-menu-item index="/coalMine">煤矿管理</el-menu-item>
+          <el-menu-item index="/socket">SocketData</el-menu-item>
           <el-menu-item>
             <el-button type="text" @click="dialog = true">欢迎你! {{ LoginIngUserForm.userName }}</el-button>
           </el-menu-item>
