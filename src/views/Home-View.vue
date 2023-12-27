@@ -15,11 +15,12 @@ export default {
     // 检查cookie中是否有用户数据
     const userData = this.$cookies.get('userData');
     // 在组件创建时修改页面标题
-    document.title = '煤矿管理系统';
+    document.title = '煤矿监测系统';
     if (userData) {
       this.isLogin = true;
       //todo 进行一次数据更新，以防cookie过期
       this.user = userData;
+      this.$router.push('/sensor');
     } else {
      this.isLogin=false;
     }
