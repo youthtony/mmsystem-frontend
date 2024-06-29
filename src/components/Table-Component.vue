@@ -16,6 +16,7 @@
         </div>
       </el-col>
     </el-row>
+    <!-- 表格部分 -->
     <el-table
         :data="TableData"
         stripe
@@ -101,7 +102,6 @@ export default {
     }
     // 初始化属性名
     this.initializePropertyNames(this.thisTableData);
-
   },
   props: ['TableData'],
   data() {
@@ -123,7 +123,6 @@ export default {
     initializePropertyNames(data) {
       if (data && data.length > 0) {
         const firstDataObject = data[0];
-
         if (firstDataObject) {
           this.propertyNames = Object.keys(firstDataObject);
           let valuesToDelete = ["id", "createTime", "updateTime", "isDelete"];
@@ -235,7 +234,7 @@ export default {
         console.error(`在TableData中未找到ID为${this.upDataId}的数据`);
       }
     },
-    // todo 更新传感器
+    //  更新传感器
     updateSensor() {
       this.$axios.get('/sensor/getAllSensor')
           .then(res => {
@@ -251,7 +250,7 @@ export default {
             console.error('Error fetching data:', error);
           });
     },
-    // todo 更新煤矿
+    //  更新煤矿
     updateCoalMine() {
       this.$axios.get('/coalMine/getAllCoalMine')
           .then(res => {

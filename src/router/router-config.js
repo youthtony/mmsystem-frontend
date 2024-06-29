@@ -13,7 +13,7 @@ const routes = [
     { path: '/', component: HomeView },
     { path:'/sensor',component: SensorView},
     { path:'/coalMine',component: CoalMineView},
-    {path:'/socket',component: SocketView}
+    {path:'/socket',component: SocketView},
     // 更多路由配置
 ]
 
